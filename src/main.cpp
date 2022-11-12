@@ -5,7 +5,7 @@ const int MAX_X = 320;
 const int MAX_Y = 240;
 const int SPRITE_COLOR_DEPTH = 8;
 
-bool primed, silent, active;
+bool primed, active;
 
 float gyroX, gyroY, gyroZ;
 float pitch, roll, yaw;
@@ -35,40 +35,29 @@ void loop() {
   // update (for button press)
   M5.update();
 
-  // button behavior
+  Event& e = M5.Buttons.event;
+  // check for a touch
+  if (e & (E_TOUCH)) {
+    // if unprimed prime
+    if(!primed) {
+      active = false;
+      primed = true;
 
-  // button A - prime device
-  // button B - prime device in silent mode
-  // button C - deactivate device
-  if(M5.BtnA.wasPressed()) {
-    M5.IMU.getAhrsData(&ppitch, &proll, &pyaw);
-    primed = true;
-    silent = false;
-    active = false;
-  }
-  if(M5.BtnB.wasPressed()) {
-    M5.IMU.getAhrsData(&ppitch, &proll, &pyaw);
-    primed = true;
-    silent = true;
-    active = false;
-  }
-  if(M5.BtnC.wasPressed()) {
-    primed = false;
-    silent = false;
-    active = false;
-    img.fillScreen(GREEN);
+      // set screen for primed
+      img.fillScreen(BLUE);
+    }
+    // if active unprime
+    if(active) {
+      active = false;
+      primed = false;
+
+      // set screen for unprimed
+      img.fillScreen(GREEN);
+    }
   }
 
   // check for significant change if primed
   if(primed && !active) {
-    // set screen color based on mode
-    if(silent) {
-      img.fillScreen(BLACK);
-    }
-    else {
-      img.fillScreen(BLUE);
-    }
-
     // get readings
     M5.IMU.getGyroData(&gyroX, &gyroY, &gyroZ);
     M5.IMU.getAhrsData(&pitch, &roll, &yaw);
@@ -76,13 +65,13 @@ void loop() {
     // check if readings suggest motion (gyroscope) or change overall (pitch and roll)
     if(abs(gyroX) > 40 || abs(gyroY) > 40 || abs(gyroZ) > 40 || abs(pitch - ppitch) > 20 || abs(pitch - ppitch) > 20) {
       // send the message back to the receiving device
-      
       active = true;
-      if(!silent) {
-        img.fillScreen(RED);
-        // play sound
-      }
     }
+  }
+
+  if(active) {
+    img.fillScreen(RED);
+    // play sound
   }
 
   // draw screen
