@@ -8,8 +8,6 @@ const int SPRITE_COLOR_DEPTH = 8;
 bool primed, active;
 
 float gyroX, gyroY, gyroZ;
-float pitch, roll, yaw;
-float ppitch, proll, pyaw; // values when primed, used for comparison
 
 TFT_eSprite img = TFT_eSprite(&M5.Lcd);
 
@@ -20,6 +18,8 @@ TFT_eSprite img = TFT_eSprite(&M5.Lcd);
 // red = active
 
 void setup() {
+  Serial.begin(115200);
+
   M5.begin();
   M5.IMU.Init();
 
@@ -60,10 +60,9 @@ void loop() {
   if(primed && !active) {
     // get readings
     M5.IMU.getGyroData(&gyroX, &gyroY, &gyroZ);
-    M5.IMU.getAhrsData(&pitch, &roll, &yaw);
 
     // check if readings suggest motion (gyroscope) or change overall (pitch and roll)
-    if(abs(gyroX) > 40 || abs(gyroY) > 40 || abs(gyroZ) > 40 || abs(pitch - ppitch) > 20 || abs(pitch - ppitch) > 20) {
+    if(abs(gyroX) > 40 || abs(gyroY) > 40 || abs(gyroZ) > 40) {
       // send the message back to the receiving device
       active = true;
     }
